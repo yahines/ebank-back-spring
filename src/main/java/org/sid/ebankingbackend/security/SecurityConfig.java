@@ -27,10 +27,11 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -59,6 +60,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                             .csrf(csrf -> csrf.disable())
+                            .cors(Customizer.withDefaults()) // Active le bean CorsConfigurationSource
                             .authorizeHttpRequests(ar -> ar.requestMatchers("/auth/login/**").permitAll().anyRequest().authenticated())
                             //.authorizeHttpRequests(ar -> ar.anyRequest().authenticated())
                             //.httpBasic(Customizer.withDefaults())
@@ -84,5 +86,19 @@ public class SecurityConfig {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(List.of(daoAuthenticationProvider));
+    }
+
+    // filtre permettant de completer @CrossOrigin("*") pour spring security
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        // pour laisser le navigateur autoriser javascript a lire les headers spécifiques"
+        // configuration.setExposedHeaders(List.of("x-auth-token"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

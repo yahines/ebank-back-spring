@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Slf4j
+// ne fonctionne pas pour spring security
 @CrossOrigin("*")
 public class CustomerRestController {
     private BankAccountService bankAccountService;
